@@ -109,7 +109,12 @@ export type RequestBodyOption<T> =
       : { body: OperationRequestBodyContent<T> };
 
 export type FetchOptions<T> = RequestOptions<T> &
-  Omit<RequestInit, "body" | "headers">;
+  Omit<RequestInit, "body" | "headers"> &
+  NextJsFetchOptions;
+
+export type NextJsFetchOptions = {
+  next?: { revalidate?: false | 0 | number; tags?: string[] };
+};
 
 export type FetchResponse<T, O> =
   | {

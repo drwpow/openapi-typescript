@@ -12,7 +12,6 @@ import transformResponseObject from "./transform/response-object.js";
 import transformSchemaObject from "./transform/schema-object.js";
 import transformSchemaObjectMap from "./transform/schema-object-map.js";
 import { error, escObjKey, getDefaultFetch, getEntries, getSchemaObjectComment, indent } from "./utils.js";
-
 export * from "./types.js"; // expose all types to consumers
 
 const EMPTY_OBJECT_RE = /^\s*\{?\s*\}?\s*$/;
@@ -55,6 +54,7 @@ async function openapiTS(schema: string | URL | OpenAPI3 | Readable, options: Op
     silent: options.silent ?? false,
     supportArrayLength: options.supportArrayLength ?? false,
     excludeDeprecated: options.excludeDeprecated ?? false,
+    rootTypes: options.rootTypes ?? false,
   };
 
   // 1. load schema (and subschemas)
@@ -119,6 +119,14 @@ async function openapiTS(schema: string | URL | OpenAPI3 | Readable, options: Op
 
   // 2c. root schema
   const rootTypes = transformSchema(allSchemas["."].schema as OpenAPI3, ctx);
+  const typedComponents = (allSchemas["."].schema as OpenAPI3).components!;
+
+  if (options.rootTypes) {
+    for (const schema of Object.keys(typedComponents.schemas as object)) {
+      output.push(`export type ${schema} = external["."]["components"]["schemas"]["${schema}"];\n`);
+    }
+  }
+
   for (const k of Object.keys(rootTypes)) {
     if (rootTypes[k] && !EMPTY_OBJECT_RE.test(rootTypes[k])) {
       output.push(options.exportType ? `export type ${k} = ${rootTypes[k]};` : `export interface ${k} ${rootTypes[k]}`, "");

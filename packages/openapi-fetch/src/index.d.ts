@@ -11,10 +11,14 @@ import type {
   SuccessResponse,
 } from "openapi-typescript-helpers";
 
+import { Dispatcher} from 'undici';
+
 /** Options for each client instance */
 export interface ClientOptions extends Omit<RequestInit, "headers"> {
   /** set the common root URL for all API requests */
   baseUrl?: string;
+  /** custom dispatcher */
+  dispatcher?: Dispatcher;
   /** custom fetch (defaults to globalThis.fetch) */
   fetch?: (request: Request) => ReturnType<typeof fetch>;
   /** global querySerializer */

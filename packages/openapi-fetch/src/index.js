@@ -28,6 +28,7 @@ class CustomRequest extends Request {
 export default function createClient(clientOptions) {
   let {
     baseUrl = "",
+    dispatcher = undefined,
     fetch: baseFetch = globalThis.fetch,
     querySerializer: globalQuerySerializer,
     bodySerializer: globalBodySerializer,
@@ -107,7 +108,7 @@ export default function createClient(clientOptions) {
     }
 
     // fetch!
-    let response = await fetch(request);
+    let response = await fetch(request, dispatcher ? { dispatcher } : undefined);
 
     // middleware (response)
     // execute in reverse-array order (first priority gets last transform)

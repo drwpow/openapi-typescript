@@ -2,6 +2,7 @@ import { HttpResponse, type StrictResponse } from "msw";
 import createClient, { type Middleware, type MiddlewareRequest, type QuerySerializerOptions } from "../src/index.js";
 import type { paths } from "./fixtures/api.js";
 import { server, baseUrl, useMockRequestHandler, toAbsoluteURL } from "./fixtures/mock-server.js";
+import { Agent } from "undici";
 
 beforeAll(() => {
   server.listen({
@@ -658,6 +659,33 @@ describe("client", () => {
   describe("options", () => {
     it("baseUrl", async () => {
       let client = createClient<paths>({ baseUrl });
+
+      const { getRequestUrl } = useMockRequestHandler({
+        baseUrl,
+        method: "get",
+        path: "/self",
+        status: 200,
+        body: { message: "OK" },
+      });
+
+      await client.GET("/self");
+
+      // assert baseUrl and path mesh as expected
+      expect(getRequestUrl().href).toBe(toAbsoluteURL("/self"));
+
+      client = createClient<paths>({ baseUrl });
+      await client.GET("/self");
+      // assert trailing '/' was removed
+      expect(getRequestUrl().href).toBe(toAbsoluteURL("/self"));
+    });
+
+    it("dispatcher", async () => {
+      const dispatcher = new Agent({
+        connect: {
+          rejectUnauthorized: false,
+        },
+      });
+      let client = createClient<paths>({ baseUrl, dispatcher });
 
       const { getRequestUrl } = useMockRequestHandler({
         baseUrl,
